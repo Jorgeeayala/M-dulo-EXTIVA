@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marangatu Pro</title>
+  <link rel="stylesheet" href="../css/popup.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- HEADER                                  -->
+  <!-- ═══════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M13.5 2.5 6.5 13h5l-1.5 8.5L17.5 11h-5l1-8.5Z" />
+      </svg>
+      <div>
+        <div class="logo-title">MARANGATU PRO</div>
+        <div class="logo-sub">DNIT · Paraguay</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-config" title="Configuración">⚙</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PANTALLA: LOGIN                         -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="screen" id="screen-login">
+    <div class="section-label">ACCESO AL SISTEMA</div>
+
+    <!-- Buscador de clientes -->
+    <div class="form-group">
+      <label>Buscar Cliente (RUC o Nombre)</label>
+      <div style="position: relative;">
+        <input type="text" id="input-search-cliente" placeholder="Escribe para buscar..." autocomplete="off" />
+        <div id="clientes-dropdown" class="clientes-dropdown hidden"></div>
+      </div>
+    </div>
+
+    <div class="divider">o ingresa manualmente</div>
+
+    <div class="form-group">
+      <label>Usuario / RUC</label>
+      <input type="text" id="input-usuario" placeholder="RUC o usuario Marangatu" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>Clave</label>
+      <input type="password" id="input-clave" placeholder="••••••••" autocomplete="current-password" class="form-control" style="width: 100%;" />
+    </div>
+
+    <button class="btn-primary" id="btn-login">
+      <span>Ingresar a Marangatu</span>
+      <span class="btn-arrow">→</span>
+    </button>
+
+    <div class="filename-note" style="margin-top: 12px; text-align: center;">
+      Solo necesitás hacer login UNA vez. Tus credenciales se guardan automáticamente.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PANTALLA: DASHBOARD / MENÚ              -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="screen hidden" id="screen-dashboard">
+    <div class="section-label">HERRAMIENTAS</div>
+
+    <div class="tool-grid">
+      <button class="tool-card" id="tool-iva">
+        <div class="tool-icon">📄</div>
+        <div class="tool-name">Formularios IVA</div>
+        <div class="tool-desc">Descargar últimos meses</div>
+      </button>
+
+      <button class="tool-card disabled" title="Próximamente">
+        <div class="tool-icon">📊</div>
+        <div class="tool-name">Declaraciones IRE</div>
+        <div class="tool-desc">Próximamente</div>
+        <div class="soon-badge">Pronto</div>
+      </button>
+
+      <button class="tool-card disabled" title="Próximamente">
+        <div class="tool-icon">🧾</div>
+        <div class="tool-name">Comprobantes</div>
+        <div class="tool-desc">Próximamente</div>
+        <div class="soon-badge">Pronto</div>
+      </button>
+
+      <button class="tool-card disabled" title="Próximamente">
+        <div class="tool-icon">👤</div>
+        <div class="tool-name">Cuenta Corriente</div>
+        <div class="tool-desc">Próximamente</div>
+        <div class="soon-badge">Pronto</div>
+      </button>
+    </div>
+
+    <div class="bottom-row">
+      <button class="btn-ghost" id="btn-logout-dash">← Cerrar sesión</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PANTALLA: FORMULARIOS IVA               -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="screen hidden" id="screen-iva">
+    <div class="screen-header">
+      <button class="back-btn" id="back-from-iva">← Volver</button>
+      <div class="section-label">FORMULARIOS IVA</div>
+    </div>
+
+    <!-- Información del cliente (RUC logueado) -->
+    <div class="cliente-info" id="cliente-info">
+      <span class="cliente-ruc" id="info-ruc">Tu RUC</span>
+    </div>
+
+    <!-- Cuántos meses -->
+    <div class="form-group">
+      <label>Períodos a descargar</label>
+      <div class="meses-tabs">
+        <button class="tab-btn active" data-meses="1">Último</button>
+        <button class="tab-btn" data-meses="3">3 meses</button>
+        <button class="tab-btn" data-meses="6">6 meses</button>
+        <button class="tab-btn" data-meses="custom">Personalizado</button>
+      </div>
+    </div>
+
+    <!-- Rango personalizado -->
+    <div class="custom-range hidden" id="custom-range">
+      <div class="range-row">
+        <div class="form-group">
+          <label>Desde</label>
+          <input type="month" id="range-desde" />
+        </div>
+        <div class="form-group">
+          <label>Hasta</label>
+          <input type="month" id="range-hasta" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview de los meses a descargar -->
+    <div class="meses-preview" id="meses-preview">
+      <div class="preview-label">Se descargarán:</div>
+      <div class="meses-chips" id="meses-chips"></div>
+    </div>
+
+    <!-- Nombre de archivo -->
+    <div class="form-group">
+      <label>Formato de nombre de archivo</label>
+      <div class="filename-preview" id="filename-preview">IVA_2025_01_CLIENTE.pdf</div>
+      <div class="filename-note">Los archivos se guardarán en tu carpeta de Descargas</div>
+    </div>
+
+    <button class="btn-primary" id="btn-start-download">
+      <span class="btn-download-icon">⬇</span>
+      <span id="btn-download-text">Descargar formularios</span>
+    </button>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PANTALLA: PROGRESO DE DESCARGA          -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="screen hidden" id="screen-progress">
+    <div class="section-label">DESCARGANDO...</div>
+
+    <div class="progress-cliente">
+      <span>Cliente:</span>
+      <strong id="progress-cliente-nombre">—</strong>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-text" id="progress-text">Iniciando...</div>
+
+    <div class="download-list" id="download-list"></div>
+
+    <div class="progress-actions">
+      <button class="btn-ghost" id="btn-cancel-download">Cancelar</button>
+    </div>
+  </section>
+
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PANTALLA: CONFIGURACIÓN                 -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="screen hidden" id="screen-config">
+    <div class="screen-header">
+      <button class="back-btn" id="back-from-config">← Volver</button>
+      <div class="section-label">CONFIGURACIÓN</div>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Login automático al abrir Marangatu</label>
+      <label class="toggle">
+        <input type="checkbox" id="cfg-autologin" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Delay entre descargas (segundos)</label>
+      <input type="number" id="cfg-delay" min="1" max="10" value="2" class="config-input" />
+    </div>
+
+    <div class="config-group">
+      <label class="config-label">Prefijo de carpeta en descargas</label>
+      <input type="text" id="cfg-prefix" value="IVA" class="config-input" placeholder="IVA" />
+    </div>
+
+    <button class="btn-primary" id="btn-save-config">Guardar configuración</button>
+
+    <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border);">
+      <div class="section-label" style="margin-bottom: 10px;">GESTIÓN DE CLIENTES</div>
+      
+      <div class="filename-note" style="margin-bottom: 10px;">
+        Importa un archivo CSV con formato: RUC,Nombre,Clave
+      </div>
+      
+      <input type="file" id="input-csv-file" accept=".csv" style="display:none" />
+      <button class="btn-secondary" id="btn-import-csv" style="margin-top: 0;">
+        📁 Importar clientes desde CSV
+      </button>
+      
+      <div id="csv-status" style="margin-top: 10px; font-size: 11px; color: var(--text-muted);"></div>
+      
+      <button class="btn-ghost" id="btn-export-csv" style="margin-top: 10px; width: 100%;">
+        💾 Exportar clientes a CSV
+      </button>
+    </div>
+
+    <div class="danger-zone">
+      <div class="danger-title">Zona peligrosa</div>
+      <button class="btn-danger" id="btn-clear-all">Borrar todos los datos</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TOAST NOTIFICATIONS                     -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="../js/popup.js"></script>
+</body>
+</html>

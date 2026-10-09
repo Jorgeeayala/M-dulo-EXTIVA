@@ -1,0 +1,133 @@
+Marangatu Pro - Contexto rapido de scripts importantes
+=====================================================
+
+1) Entrada y estructura
+-----------------------
+- extension/manifest.json
+  - Define permisos, background, content script, popup, iconos.
+  - Version actual: revisar campo "version".
+
+- extension/pages/popup.html
+  - UI del popup (login, dashboard, IVA, progreso, configuracion).
+
+- extension/css/popup.css
+  - Estilos del popup (incluye dropdown de clientes CSV y responsive).
+
+
+2) Script del popup (logica de UI)
+----------------------------------
+- extension/js/popup.js
+  Funciones clave:
+  - loadStorage(): carga config, credenciales y catalogo CSV.
+  - initLogin(): login + busqueda en tiempo real + teclado (↑ ↓ Enter Esc).
+  - initDashboard(): entrada a IVA y logout.
+  - initIva(): seleccion de periodos (1/3/6/custom).
+  - getMesesList(): calcula periodos a descargar.
+  - startDownload(): valida estado, arma payload y dispara START_IVA_DOWNLOAD.
+  - initConfig(): guardar config, importar/exportar CSV.
+  - parseCsv()/parseCsvLine()/detectCsvDelimiter(): parser CSV (coma y punto y coma).
+
+  Eventos/mensajes recibidos del background:
+  - LOGIN_SUCCESS
+  - PROGRESS_UPDATE
+  - AUTOMATION_COMPLETE
+  - FORMULARIOS_ENCONTRADOS
+  - ERROR_AUTOMATIZACION
+
+
+3) Background (orquestacion entre popup y tabs)
+-----------------------------------------------
+- extension/js/background.js
+  Funciones clave:
+  - abrirYLoguear(credentials): abre/activa tab Marangatu e inyecta login.
+  - iniciarDescargaEnTab(state): elige tab objetivo y envia INICIAR_DESCARGA_IVA.
+  - abrirSiguienteFormulario(state): vuelve a tab de lista para abrir siguiente.
+  - abrirFormularioEnUltimaPosicion(href): crea nueva tab al final para formulario.
+  - notifyPopup(message): bridge de eventos al popup.
+  - applyExtensionIcon(): fuerza icono runtime (setIcon).
+
+  Mensajes que escucha:
+  - OPEN_MARANGATU
+  - START_IVA_DOWNLOAD
+  - INICIAR_DESCARGA_IVA
+  - FORMULARIOS_ENCONTRADOS
+  - ABRIR_SIGUIENTE_FORMULARIO
+  - OPEN_FORMULARIO_TAB
+  - DESCARGANDO_FORMULARIO
+  - FORMULARIO_GUARDADO
+  - DESCARGA_COMPLETA
+  - ERROR_AUTOMATIZACION
+  - RESET_AUTOMATION
+
+
+4) Content script (automatizacion en Marangatu)
+-----------------------------------------------
+- extension/js/content.js
+  Estado compartido:
+  - STORAGE_KEY = marangatu_pro_automation
+  - setEtapa()/clearEtapa() para coordinar entre tabs.
+
+  Etapas principales del flujo:
+  - CLICK_CONSULTAS
+  - BUSCAR_CONTRIBUYENTE
+  - CLICK_IVA_DECLARACIONES
+  - LEER_TABLA_IVA
+  - GUARDAR_FORMULARIO
+
+  Funciones clave:
+  - inyectarLogin(credentials): rellena usuario/clave y submit.
+  - iniciarDescarga(state): detecta contexto y decide desde que paso arrancar.
+  - ejecutarClickConsultas(state): menu Consultas -> Vision Integral.
+  - runBuscarContribuyente(state): click en boton Busqueda.
+  - runClickIvaDeclaraciones(state): click en fila/anchor de 211 IVA General.
+  - runLeerTablaIva(state): parsea tabla DDJJ y arma cola por periodos.
+  - abrirFormularioDeCola(state): abre formulario (via background o fallback).
+  - runGuardarFormulario(state): document.title + window.print + avanzar.
+  - isExpectedFormularioTab(...): evita print fuera de flujo.
+
+
+5) Flujo de mensajes (resumen)
+------------------------------
+1. popup.js -> background.js: OPEN_MARANGATU (login)
+2. background.js -> content.js: INYECTAR_LOGIN
+3. popup.js -> background.js: START_IVA_DOWNLOAD
+4. background.js -> content.js: INICIAR_DESCARGA_IVA
+5. content.js navega por etapas y reporta progreso al background
+6. background.js traduce/reenvia eventos al popup
+
+
+6) Archivos para retocar segun necesidad
+----------------------------------------
+- Velocidad y selectores: extension/js/content.js
+- Orden de tabs / abrir al final: extension/js/background.js
+- UX y CSV en popup: extension/js/popup.js + extension/pages/popup.html + extension/css/popup.css
+- Iconos y metadata: extension/manifest.json + extension/icons/*
+
+
+7) Problemas comunes y donde mirar
+----------------------------------
+- No inyecta login:
+  - background.js (abrirYLoguear)
+  - content.js (inyectarLogin)
+
+- Se traba en busqueda/211:
+  - content.js (runBuscarContribuyente, runClickIvaDeclaraciones)
+
+- Toma mal periodos:
+  - popup.js (getMesesList)
+  - content.js (runLeerTablaIva)
+
+- Auto-print fuera de flujo:
+  - content.js (isExpectedFormularioTab + clearEtapa)
+
+- Icono no cambia:
+  - manifest.json (icons/default_icon)
+  - background.js (applyExtensionIcon)
+
+
+8) Nota operativa
+-----------------
+- Para test rapido:
+  1) chrome://extensions -> recargar extension
+  2) abrir popup y correr flujo
+  3) usar consola en tab Marangatu para logs del content script
